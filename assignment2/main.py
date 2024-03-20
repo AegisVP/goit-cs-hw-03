@@ -4,7 +4,7 @@ from dotenv import dotenv_values
 config = dotenv_values(".env")
 
 def create_connection():
-    uri = "mongodb+srv://" + config['MONGODB_USER'] + ":" + config['MONGODB_PASS'] + "@cluster0.aesnroa.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+    uri = config['MONGODB_URL']
     print(f"Connecting to: {uri}")
 
     client = pymongo.MongoClient(uri)
@@ -17,27 +17,43 @@ def create_connection():
     
     return client
 
+def try_catch(func):
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            print(f"Error: {e}")
+            raise e
+    return wrapper
+
+@try_catch
 def read_all_data(db, collection):
     return list(db[collection].find())
 
+@try_catch
 def read_data(db, collection, query):
     return list(db[collection].find(query))
 
+@try_catch
 def insert_data(db, collection, data):
     db[collection].insert_one(data)
 
+@try_catch
 def update_age(db, collection, query, new_age):
     db[collection].update_one(query, {'$set': {'age': new_age}})
 
+@try_catch
 def add_feature(db, collection, query, new_feature):
     features = db[collection].find_one(query)['features']
     if (new_feature not in features):
         features.append(new_feature)
     db[collection].update_one(query, {'$set': {'features': features}})
 
+@try_catch
 def delete_entry(db, collection, query):
     db[collection].delete_one(query)
 
+@try_catch
 def purge_collection(db, collection):
     db[collection].delete_many({})
 
@@ -45,13 +61,8 @@ def print_data(db, collection):
     data_list = read_all_data(db, collection)
     print(data_list)
 
-if __name__ == "__main__":
-    client = create_connection()
-    db = client[config['MONGODB_NAME']]
-    collection = config['MONGODB_COLLECTION']
-    print('\nInitial DB state:')
-    print_data(db, collection)
-
+@try_catch
+def seed_data(db, collection):
     barsik = {
         "name": "barsik",
         "age": 3,
@@ -65,8 +76,17 @@ if __name__ == "__main__":
     }
 
     print('\nInserting "barsik" and "murchik":')
-    insert_data(db, collection, barsik)
-    insert_data(db, collection, murchik)
+    db[collection].insert_many([barsik, murchik])
+    
+
+if __name__ == "__main__":
+    client = create_connection()
+    db = client[config['MONGODB_NAME']]
+    collection = config['MONGODB_COLLECTION']
+    print('\nInitial DB state:')
+    print_data(db, collection)
+
+    seed_data(db, collection)
     print_data(db, collection)
 
     search_term = {"name": "barsik"}
