@@ -1,39 +1,41 @@
-create database goit_hw03;
+DROP TABLE IF EXISTS users;
 
-use goit_hw03;
-
-create table
+CREATE TABLE
     users (
-        `id` serial primary key,
-        `fullname` varchar(100) not null,
-        `email` varchar(100),
-        `created_at` timestamp not null default current_timestamp,
-        constraint `un_email` unique (email)
+        id SERIAL PRIMARY KEY,
+        fullname VARCHAR(100) NOT NULL,
+        email VARCHAR(100),
+        created_at TIMESTAMP NOT NULL DEFAULT current_timestamp,
+        CONSTRAINT un_email UNIQUE (email)
     );
 
-create table
+DROP TABLE IF EXISTS status;
+
+CREATE TABLE
     status (
-        `id` serial primary key,
-        `name` varchar(50) not null,
-        `created_at` timestamp not null default current_timestamp,
-        constraint `un_name` unique (name)
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(50) NOT NULL,
+        created_at TIMESTAMP NOT NULL DEFAULT current_timestamp,
+        CONSTRAINT un_name UNIQUE (name)
     );
 
-insert into
+INSERT INTO
     status (name)
-values
+VALUES
     ('new'),
     ('in progress'),
     ('completed');
 
-create table
+DROP TABLE IF EXISTS tasks;
+
+CREATE TABLE
     tasks (
-        `id` serial primary key,
-        `title` varchar(100) not null,
-        `description` text not null,
-        `status_id` serial,
-        `user_id` serial,
-        `created_at` timestamp not null default current_timestamp,
-        foreign key (status_id) references `status` (id) on delete set null on update cascade,
-        foreign key (user_id) references `users` (id) on delete cascade on update cascade
+        id SERIAL PRIMARY KEY,
+        title VARCHAR(100) NOT NULL,
+        description TEXT NOT NULL,
+        status_id INT,
+        user_id INT,
+        created_at TIMESTAMP NOT NULL DEFAULT current_timestamp,
+        FOREIGN KEY (status_id) REFERENCES status (id) ON DELETE SET NULL ON UPDATE CASCADE,
+        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE ON UPDATE CASCADE
     );
