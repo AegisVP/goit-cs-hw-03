@@ -1,12 +1,15 @@
 import psycopg2
 import logging
+import dotenv
 from contextlib import contextmanager
+
+config = dotenv.dotenv_values(".env")
 
 
 @contextmanager
 def create_connect():
     try:
-        conn = psycopg2.connect("dbname='hw_03' user='postgres' host='localhost' password='goit'")
+        conn = psycopg2.connect(f"dbname={config['POSTGRES_BASE']} user={config['POSTGRES_USER']} host={config['POSTGRES_HOST']} password={config['POSTGRES_PASS']}")
         try:
             yield conn
             conn.commit()
